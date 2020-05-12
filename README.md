@@ -1,5 +1,5 @@
 # Sensor_calibration_benchmark
-  This repository will include the instruction of how to generate sensor_calibration_benchmark.
+  This repository will provide the necessary instructions and tools to generate sensor_calibration_benchmark.
 
 # Workflow for adding a new label data
 1. Find the interesting bag and slice it to smallest bite without degenerating the problem.
