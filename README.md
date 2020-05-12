@@ -68,7 +68,8 @@ put you data at
 `@data1:/mnt/vault0/simulator_bags/sensor_calibration_benchmark/` 
 
 and it will automatically upload to 
-`/work/data/benchmark-bags/sensor_calibration_benchmark/ in all CI machines`
+
+`/work/data/benchmark-bags/sensor_calibration_benchmark/`
 
 ref: [data-sync](https://github.com/PlusAI/data-sync/blob/master/conf/sync.yaml#L52)
 
