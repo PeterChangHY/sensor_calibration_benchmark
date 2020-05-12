@@ -2,15 +2,15 @@
   This repository will include the instruction of how to generate sensor_calibration_benchmark.
 
 # Workflow for adding a new label data
-1. find the interesting $data and slice it to smallest bite without degenerating the problem.
-2. Carefully do manul/automatical check and put the key and value with timestamp in the $bag.csv.
+1. Find the interesting bag and slice it to smallest bite without degenerating the problem.
+2. Carefully do manul/automatic check and put the key and value with timestamp in the bag.csv.
 3. Provide the proof of accuracy of lobeled data and ask other folks to double check it.
-4. Upload the bag and related csv to the data1 and share with Sensor calibration team.
+4. Upload the bag and related csv and share with Sensor calibration team.
 
 # Workflow of adding/modifing new label on current data
-1. Carefully do manul/automatical check and adding/modify the key and value with timestamp in the $bag.csv.
+1. Carefully do manul/automatic check and adding/modify the key and value with timestamp in the bag.csv.
 2. Provide the proof of accuracy of newly lobeled data and ask other folks to double check it.
-3. Update the new .csv on the data1 and share with Sensor calibration team.
+3. Upload the new .csv and share with Sensor calibration team.
 
 ## Output/groud truth format:
  using Comma Separate Values format(.csv) without any header. 
@@ -38,8 +38,9 @@
       | 0.03| 0.04|
 
 ## Folder structure
-every bag should comes with a .csv file with the same basename of the bag in the same directory
-we use *vehicle name* as the first sub folders.
+Every bag should comes with a .csv file with the same basename and both are in the same directory
+
+Using *vehicle name* as the first sub folders.
 ```
 sensor_calibraton_benchmark 
 │
