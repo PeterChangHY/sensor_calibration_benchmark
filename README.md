@@ -39,7 +39,13 @@
 
 ## How to upload sensor_calibration_benchmark
 
-TODO
+put your data at @data1:/mnt/vault0/peter/sensor_calibration_benchmark/  
+
+If you will need to use the benchmark in replay simulator or other places.
+
+put you data at @data1:/mnt/vault0/simulator_bags/sensor_calibration_benchmark/ and it will automatically upload to /work/data/benchmark-bags/sensor_calibration_benchmark/ in all CI machines
+
+
 
 ## How to check the data
 
