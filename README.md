@@ -19,7 +19,7 @@
  
  **Time**: using [Unix Epoch Clock](https://en.wikipedia.org/wiki/Unix_time) format. 
  
- **Key**: any plain string ex. SENSOR_CALIB_EXTRINSIC_PARAM_IMU_OFF
+ **Key**: any plain string e.g. SENSOR_CALIB_EXTRINSIC_PARAM_IMU_OFF
  
  For sensor calibration check, we will follow the name in [drive/monitor](https://github.com/PlusAI/drive/blob/master/protos/monitor/status_report_msg.proto)
  
