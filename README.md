@@ -37,6 +37,21 @@
       | 0.01| 0.02|      
       | 0.03| 0.04|
 
+## Folder structure
+every bag should comes with a .csv file with the same basename of the bag in the same directory
+we use *vehicle name* as the first sub folders.
+```
+sensor_calibraton_benchmark 
+│
+└───paccar-k001dm
+│   │─── A.bag
+│   │─── A.csv
+│   
+└───petebilf-sif
+│   │─── B.bag
+│   │─── B.csv
+```
+
 ## How to upload sensor_calibration_benchmark
 
 put your data at @data1:/mnt/vault0/peter/sensor_calibration_benchmark/  
