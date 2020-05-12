@@ -36,7 +36,7 @@ $ python find-diff-imu-yaw-to-velocity-yaw.py --bags your.bag --yaw_th_in_rad 0.
  
  For sensor calibrtion check we will follow the name in [drive/monitor](https://github.com/PlusAI/drive/blob/master/protos/monitor/status_report_msg.proto)
  
- *please make sure the key is properly naming, everyone agrees its meaning before really adding it and add description in [here][./doc/key_description.md]
+ *please make sure the key is properly naming, everyone agrees its meaning before really adding it and add description in [key_description](./doc/key_description.md)
  
  **Value**: we have Three values of value here
  1. a float number
