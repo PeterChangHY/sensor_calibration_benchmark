@@ -35,7 +35,7 @@
       | 2 by 2 Matrix || 
       |--|:-:|
       | 0.01| 0.02|      
-      | 0.03| 0.03|
+      | 0.03| 0.04|
 
 ## How to upload sensor_calibration_benchmark
 
