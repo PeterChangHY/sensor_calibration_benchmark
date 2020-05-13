@@ -1,5 +1,10 @@
 # Sensor_calibration_benchmark
   This repository will provide the necessary instructions and tools to generate sensor_calibration_benchmark.
+  This benchmark should be 
+  1. general -> not only for certain sensor_calibration
+  2. extendable -> we can reuse the data for other application and add/modify labels when we need to
+  
+
 
 # Workflow for adding a new label data
 1. Find the interesting bag and slice it to smallest bite without degenerating the problem.
