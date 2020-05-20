@@ -18,7 +18,7 @@
 3. Upload the new .csv and share with Sensor calibration team.
 
 ## Output/groud truth format:
- using Comma Separate Values format(.csv) without any header. 
+ using Comma Tab Values format(.tsv) without any header. 
  
  It should comes with three columns {**Time**, **Key**, **value**}
  
@@ -51,11 +51,11 @@ sensor_calibraton_benchmark
 │
 └───paccar-k001dm
 │   │─── A.bag
-│   │─── A.csv
+│   │─── A.tsv
 │   
 └───petebilf-sif
 │   │─── B.bag
-│   │─── B.csv
+│   │─── B.tsv
 ```
 
 ## How to upload sensor_calibration_benchmark
