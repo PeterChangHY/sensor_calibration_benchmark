@@ -110,6 +110,12 @@ source .venv/bin/activate
 python reporter/reporter.py --baseline_dir ~/work/sensor_calibration_benchmark/test/baseline_tsv_dir/ --groundtruth_dir ~/work/sensor_calibration_benchmark/test/gt_tsv_dir/ --target_dir ~/work/sensor_calibration_benchmark/test/target_tsv_dir/ --key SENSOR_CALIB_EXTRINSIC_PARAM_IMU_OFF --report_type sensor_calib_checker --output_dir ~/work/sensor_calibration_benchmark/test/output_2
 ```
 
+### Sensor calibration Checker report
+
+  Sensor calibration checker report need a boolean data and will track two metrics:
+  1. positive_predictive_rate aka precision
+  2. negative_predictive_rate
+    Using negative_predictive_value instead of recall is because in the general data, the number of the positive case usally is very rare. Therefore, when calculating the recall(TP/(TP+FN)), we will meet the case that divied by 0 very often. That's why we don't use recall
 
 
  
