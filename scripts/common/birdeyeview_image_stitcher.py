@@ -2,7 +2,6 @@
 
 import cv2
 import numpy as np
-import math
 
 
 class BirdEyeViewImageStitcher(object):
@@ -29,9 +28,9 @@ class BirdEyeViewImageStitcher(object):
 
         # map imu point to birdeye view image
         imu_pts = np.ones([xv.size, 4])
-        imu_pts[:, 0] = (bev_pts[:, 0] - (dst_shape[1]/2.0)) / scale
+        imu_pts[:, 0] = (bev_pts[:, 0] - (dst_shape[1] / 2.0)) / scale
         # flip the y, because imu's +x: forward, +y: left, and bev_points is +x: forward, +y:right
-        imu_pts[:, 1] = -1.0 * (bev_pts[:, 1] - dst_shape[0]/2.0) / scale
+        imu_pts[:, 1] = -1.0 * (bev_pts[:, 1] - dst_shape[0] / 2.0) / scale
         imu_pts[:, 2] = -imu_height
 
         camera_pts = imu_pts.dot(np.transpose(tr_imu_to_cam))

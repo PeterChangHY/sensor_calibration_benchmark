@@ -1,31 +1,31 @@
 #!/usr/bin/env python
 
-import rosbag
+import sys
 import argparse
 import cv2
 from cv_bridge import CvBridge
 import os
-import utm
-import tf
 import numpy as np
-import math
 import logging
 import pypcd
-import matplotlib
 import matplotlib.pyplot as plt
 import operator
 
+# add system path for local packages and moudles
+try:
+    path = os.path.normpath(os.path.join(os.path.abspath(__file__), '../../'))
+    sys.path.insert(0, path)
+except ValueError:
+    print('Can not inser the path {}'.format(path))
 # import from local common package
-from common import cylindrical_image_stitcher
-from common import birdeyeview_image_stitcher
-from common import horizontal_image_stitcher
-from common import golden_lane
-from common import calib
-from common import euler
-from common import project_points
-from common import parse_radar_message
-from common import load_bag
 from common import rotate_image
+from common import load_bag
+from common import parse_radar_message
+from common import project_points
+from common import calib
+from common import golden_lane
+from common import horizontal_image_stitcher
+from common import cylindrical_image_stitcher
 
 bridge = CvBridge()
 logger = logging.getLogger(__name__)
@@ -56,13 +56,9 @@ class CalibratonViewer(object):
         for topic in cam_calibs:
             cam_calib = cam_calibs[topic]
             Tr_cam_to_imu = cam_calib.Tr_cam_to_imu
-            Tr_imu_to_cam = cam_calib.Tr_imu_to_cam
             projection_matrix = cam_calib.P
             src_shape = [cam_calib.height, cam_calib.width]
-            birdeyeview_dst_shape = [2000, 4000]
             cylindrical_dst_shape = [1020, 3000]
-            imu_height = 1.3  # meter
-            scale = 15.0  # meter/pixel
             # self.birdeyeview_image_stitchers[topic] = birdeyeview_image_stitcher.BirdEyeViewImageStitcher(
             #    Tr_imu_to_cam, imu_height, projection_matrix, src_shape, birdeyeview_dst_shape, scale)
             self.cylindrical_image_stitchers[topic] = cylindrical_image_stitcher.CylindricalImageStitcher(
@@ -121,7 +117,6 @@ class CalibratonViewer(object):
 
     def project_lidar_to_rect_images(self, pointclouds, images):
         for topic in images:
-            image = images[topic]
             cam_calib = self.cam_calibs[topic]
             draw_image = images[topic]
             Tr_lidar_to_imu = None
@@ -147,17 +142,15 @@ class CalibratonViewer(object):
                 proj_points = project_points.project_point(
                     Tr_lidar_to_cam, cam_calib.P, (cam_calib.width, cam_calib.height), xyz_data)
                 color_bgr = lidar_color[color_index % len(lidar_color)]
-                color_rgb = [k/255.0 for k in reversed(color_bgr)]
                 for pt in proj_points:
                     draw_image = cv2.circle(draw_image, pt, 2, color_bgr, -1)
 
-                draw_image = cv2.putText(draw_image, lidar_topic.split('/')[1], (20, 50 + 30*color_index), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                draw_image = cv2.putText(draw_image, lidar_topic.split('/')[1], (20, 50 + 30 * color_index), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                          color_bgr, 2, cv2.LINE_AA)
                 color_index += 1
 
     def project_radar_to_rect_images(self, all_radar_tracks, images):
         for topic in images:
-            image = images[topic]
             cam_calib = self.cam_calibs[topic]
             draw_image = images[topic]
             color_index = 0
@@ -269,28 +262,28 @@ class CalibratonViewer(object):
         # draw grid
         for i in range(-10, 15, 5):
             # horizontal line
-            cv2.line(birdeyeview_image, (0, int(i*scale + height/2)),
-                     (width, int(i*scale + height/2)), (0, 0, 255), 1)
+            cv2.line(birdeyeview_image, (0, int(i * scale + height / 2)),
+                     (width, int(i * scale + height / 2)), (0, 0, 255), 1)
         for i in range(-100, 105, 5):
             # vertical line
-            cv2.line(birdeyeview_image, (int(i*scale + width/2), 0),
-                     (int(i*scale + width/2), height), (0, 0, 255), 1)
+            cv2.line(birdeyeview_image, (int(i * scale + width / 2), 0),
+                     (int(i * scale + width / 2), height), (0, 0, 255), 1)
 
-        cv2.putText(birdeyeview_image, "0,0", (int(width/2), int(height/2)),
+        cv2.putText(birdeyeview_image, "0,0", (int(width / 2), int(height / 2)),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
-        cv2.putText(birdeyeview_image, "5m", (int(width/2), int(height/2 + 5*scale)),
+        cv2.putText(birdeyeview_image, "5m", (int(width / 2), int(height / 2 + 5 * scale)),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
-        cv2.putText(birdeyeview_image, "10m", (int(width/2), int(height/2 + 10*scale)),
+        cv2.putText(birdeyeview_image, "10m", (int(width / 2), int(height / 2 + 10 * scale)),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
-        cv2.putText(birdeyeview_image, "5m", (int(width/2 + 5 * scale), int(height/2)),
+        cv2.putText(birdeyeview_image, "5m", (int(width / 2 + 5 * scale), int(height / 2)),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
-        cv2.putText(birdeyeview_image, "50m", (int(width/2 + 50*scale), int(height/2)),
+        cv2.putText(birdeyeview_image, "50m", (int(width / 2 + 50 * scale), int(height / 2)),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
-        cv2.putText(birdeyeview_image, "100m", (int(width/2 + 100*scale), int(height/2)),
+        cv2.putText(birdeyeview_image, "100m", (int(width / 2 + 100 * scale), int(height / 2)),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
-        cv2.putText(birdeyeview_image, "-50m", (int(width/2 + -50*scale), int(height/2)),
+        cv2.putText(birdeyeview_image, "-50m", (int(width / 2 + -50 * scale), int(height / 2)),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
-        cv2.putText(birdeyeview_image, "-100m", (int(width/2 + -100*scale), int(height/2)),
+        cv2.putText(birdeyeview_image, "-100m", (int(width / 2 + -100 * scale), int(height / 2)),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
 
         return birdeyeview_image
@@ -317,7 +310,7 @@ class CalibratonViewer(object):
             xyz_data_imu = project_points.transform_point(Tr_lidar_to_imu, xyz_data)
 
             color_bgr = lidar_color[lidar_index % len(lidar_color)]
-            color_rgb = [k/255.0 for k in reversed(color_bgr)]
+            color_rgb = [k / 255.0 for k in reversed(color_bgr)]
             plot_ax.scatter(xyz_data_imu[:, 0], xyz_data_imu[:, 1],
                             color=color_rgb, marker=',', s=1.0, alpha=0.4, label=lidar_topic)
 
@@ -331,7 +324,7 @@ class CalibratonViewer(object):
             Tr_radar_to_imu = radar_calib.Tr_radar_to_imu
             # radar_tracks = parse_radar_message.parse_radar_track(radar_msg.message)
             color_bgr = radar_color[index % len(radar_color)]
-            color_rgb = [k/255.0 for k in reversed(color_bgr)]
+            color_rgb = [k / 255.0 for k in reversed(color_bgr)]
             xyz_data = []
             for radar_track in radar_tracks:
                 radar_obstacle_contours = np.array(
@@ -361,8 +354,6 @@ class CalibratonViewer(object):
         plt.savefig(os.path.join(self.output_dir, 'topdown', image_name), dpi=250)
 
     def write_frame(self, frame_number, cam_messages, lidar_messages, radar_messages):
-        image_name = image_name_pattern % (frame_number)
-        lidar_name = lidar_name_pattern % (frame_number)
 
         images, pointclouds, all_radar_tracks = self.load_messages(
             cam_messages, lidar_messages, radar_messages)

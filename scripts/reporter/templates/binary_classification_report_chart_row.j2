@@ -1,0 +1,23 @@
+
+<tr id="bag">
+<td>
+{{bag}}
+</td>
+<td>
+    <table id="chart_row">
+        <tr>
+        <th>Metric</th> <th>Baseline</h2></th> <th>Target</th>
+        </tr>
+        {% for row in stats %}
+        <tr>
+            <td class=black> {{ row[0] }} </td>
+            <td> {{ row[1] }} </td>
+            <td> {{ row[2] }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+</td>
+{% if chart_path is not none %}
+<td><img width=960 height=540 src="{{ chart_path | escape }}"></img></td>
+{%endif %}
+</tr>

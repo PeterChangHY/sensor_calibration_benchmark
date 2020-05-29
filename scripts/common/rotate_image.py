@@ -1,11 +1,10 @@
 import cv2
-import numpy as numpy
 
 
 def rotate_image(mat, angle):
     # angle in degrees
     height, width = mat.shape[:2]
-    image_center = (width/2, height/2)
+    image_center = (width / 2, height / 2)
     """
     opencv's getRotationMatrix2D:
     angle *= CV_PI/180;
@@ -26,8 +25,8 @@ def rotate_image(mat, angle):
     bound_h = int(height * abs_cos + width * abs_sin)
 
     # shift to the new image's center
-    rotation_mat[0, 2] += bound_w/2 - image_center[0]
-    rotation_mat[1, 2] += bound_h/2 - image_center[1]
+    rotation_mat[0, 2] += bound_w / 2 - image_center[0]
+    rotation_mat[1, 2] += bound_h / 2 - image_center[1]
 
     rotated_mat = cv2.warpAffine(mat, rotation_mat, (bound_w, bound_h))
 

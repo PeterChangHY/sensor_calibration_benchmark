@@ -1,0 +1,148 @@
+#!/usr/bin/env python
+"""this moudle include a binary classification evaluation """
+
+from match_data_frame import match_time_and_fill
+
+
+class BinaryClassificationEvaluationResult(object):
+    """
+        Data class contains:
+
+        binary-classification related metrics:
+        1. true positive rate (TPR), aka sensitivity or recall
+        2. true negative rate (TNR), aka specificity
+        3. positive predictive value (PPV), aka precision
+        4. negative predictive value (NPV)
+        5. false negative rate (FNR), aka miss rate
+        6. false positive rate (FPR), aka fall-out
+        7. false discovery rate (FDR)
+        8. false omission rate (FOR)
+    """
+
+    def __init__(self, true_positive=0, true_negative=0, false_positive=0, false_negative=0):
+        self.true_positive_rate = float("NAN")
+        self.true_negative_rate = float("NAN")
+        self.positive_predictive_value = float("NAN")
+        self.negative_predictive_value = float("NAN")
+        self.false_positive_rate = float("NAN")
+        self.false_negative_rate = float("NAN")
+        self.false_discovery_rate = float("NAN")
+        self.false_omission_rate = float("NAN")
+
+        self.true_positive = true_positive
+        self.true_negative = true_negative
+        self.false_positive = false_positive
+        self.false_negative = false_negative
+
+        self._evaluate_binary_classification()
+
+    def add(self, other):
+        """ add other result"""
+        self.true_positive = self.true_positive + other.true_positive
+        self.true_negative = self.true_negative + other.true_negative
+        self.false_positive = self.false_positive + other.false_positive
+        self.false_negative = self.false_negative + other.false_negative
+        self._evaluate_binary_classification()
+
+    def _evaluate_binary_classification(self):
+        self._gen_true_positive_rate()
+        self._gen_true_negative_rate()
+        self._gen_positive_predictive_value()
+        self._gen_negative_predictive_value()
+        self._gen_false_positive_rate()
+        self._get_false_negative_rate()
+        self._get_false_discovery_rate()
+        self._get_false_omission_rate()
+
+    def _gen_true_positive_rate(self):
+        if (self.true_positive + self.false_negative) != 0:
+            self.true_positive_rate = self.true_positive / \
+                float(self.true_positive + self.false_negative)
+
+    def _gen_true_negative_rate(self):
+        if (self.true_negative + self.false_positive) != 0:
+            self.true_negative_rate = self.true_negative / \
+                float(self.true_negative + self.false_positive)
+
+    def _gen_positive_predictive_value(self):
+        if (self.true_positive + self.false_positive) != 0:
+            self.positive_predictive_value = self.true_positive / \
+                float(self.true_positive + self.false_positive)
+
+    def _gen_negative_predictive_value(self):
+        if (self.true_negative + self.false_negative) != 0:
+            self.negative_predictive_value = self.true_negative / \
+                float(self.true_negative + self.false_negative)
+
+    def _gen_false_positive_rate(self):
+        if(self.true_negative + self.false_positive) != 0:
+            self.false_positive_rate = self.false_positive / \
+                float(self.true_negative + self.false_positive)
+
+    def _get_false_negative_rate(self):
+        if(self.true_positive + self.false_negative) != 0:
+            self.false_negative_rate = self.false_negative / \
+                float(self.true_positive + self.false_negative)
+
+    def _get_false_discovery_rate(self):
+        if(self.true_positive + self.false_positive) != 0:
+            self.false_discovery_rate = self.false_positive / \
+                float(self.true_positive + self.false_positive)
+
+    def _get_false_omission_rate(self):
+        if(self.true_negative + self.false_negative) != 0:
+            self.false_omission_rate = self.false_negative / \
+                float(self.true_negative + self.false_negative)
+
+
+class BinaryClassificationEvaluator(object):
+    """ this object can take two boolean data and generate a evalution result.
+    """
+
+    def __init__(self,
+                 outcome_data,
+                 condition_data,
+                 match_time_tolerance_in_second=0.05,
+                 default_value=False):
+        if outcome_data.key != condition_data.key:
+            raise ValueError('Comparing different keys, outcome key: {}, condition key: {}'.format(
+                outcome_data.key, condition_data.key))
+
+        if outcome_data.value_type != 'boolean':
+            raise TypeError('outcome_data type({}) is not boolean'.format(outcome_data.value_type))
+
+        if condition_data.value_type != 'boolean':
+            raise TypeError('condition_data type({}) is not boolean'.format(
+                condition_data.value_type))
+
+        self._true_positive = 0
+        self._true_negative = 0
+        self._false_positive = 0
+        self._false_negative = 0
+
+        matched_data_frame = match_time_and_fill(outcome_data.data_frame,
+                                                 condition_data.data_frame,
+                                                 match_time_tolerance_in_second,
+                                                 default_value)
+        self._gen_basic_evaluations(matched_data_frame)
+
+        self.result = BinaryClassificationEvaluationResult(self._true_positive,
+                                                           self._true_negative,
+                                                           self._false_positive,
+                                                           self._false_negative)
+
+    def _prase_and_add_tp_fn_tn_fp(self, test_boolean, condition_boolean):
+        if condition_boolean is True:
+            if test_boolean is True:
+                self._true_positive = self._true_positive + 1
+            else:
+                self._false_negative = self._false_negative + 1
+        else:
+            if test_boolean is False:
+                self._true_negative = self._true_negative + 1
+            else:
+                self._false_positive = self._false_positive + 1
+
+    def _gen_basic_evaluations(self, matched_data_frame):
+        for _, row in matched_data_frame.iterrows():
+            self._prase_and_add_tp_fn_tn_fp(row['test_value'], row['target_value'])

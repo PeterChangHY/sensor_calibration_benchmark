@@ -6,6 +6,7 @@
   
 
 
+
 # Workflow for adding a new label data
 1. Find the interesting bag and slice it to smallest bite without degenerating the problem.
 2. Carefully do manul/automatic check and put the key and value with timestamp in the bag.csv.
@@ -20,9 +21,9 @@
 ## Output/groud truth format:
  using Comma Tab Values format(.tsv) without any header. 
  
- It should comes with three columns {**Time**, **Key**, **value**}
+ It should comes with three columns {**UnixTime**, **Key** ,**Value**}
  
- **Time**: using [Unix Epoch Clock](https://en.wikipedia.org/wiki/Unix_time) format. 
+ **UnixTime**: using [Unix Epoch Clock](https://en.wikipedia.org/wiki/Unix_time) format. 
  
  **Key**: any plain string e.g. SENSOR_CALIB_EXTRINSIC_PARAM_IMU_OFF
  
@@ -31,12 +32,12 @@
  *please make sure the key is properly naming, everyone agrees its meaning before really adding it and add description in [key_description](./doc/key_description.md)
  
  **Value**: three types of value
- 1. a scalar, using a float number
+ 1. a scalar, using a single float number
  
- 2. a boolean, we use 1.0 as true, 0.0 as false
+ 2. a boolean, we use 'True' or 'False'(case insensitive)
 
- 3. a sqaure matrix(row major), we use a *Space Separate Values*, 
- ex. value = '0.01 0.02 0.03 0.04' will represent
+ 3. a matrix(row major), we use a *comma Separate Values*, first two value are number of row and number of col. 
+ ex. value = '2, 2, 0.01, 0.02, 0.03, 0.04' will represent
       | 2 by 2 Matrix || 
       |--|:-:|
       | 0.01| 0.02|      
@@ -50,12 +51,13 @@ Using *vehicle name* as the first sub folders.
 sensor_calibraton_benchmark 
 │
 └───paccar-k001dm
-│   │─── A.bag
-│   │─── A.tsv
+    └─── A.bag
+│        │─── A.bag
+│        │─── A.bag.tsv
 │   
 └───petebilf-sif
 │   │─── B.bag
-│   │─── B.tsv
+│   │─── B.bag.tsv
 ```
 
 ## How to upload sensor_calibration_benchmark
@@ -93,6 +95,20 @@ $ python find-diff-imu-yaw-to-velocity-yaw.py --bags your.bag --yaw_th_in_rad 0.
 1. check golden lane using [calibration_viewer](./scripts/calibration_viewer/README.md)
 2. check lane-boundary-connection
 
+
+## Generate a report
+
+### How to setup envrionment for reporter
+
+```bash
+cd scripts
+./setup.sh
+source .venv/bin/activate
+```
+
+```base
+python reporter/reporter.py --baseline_dir ~/work/sensor_calibration_benchmark/test/baseline_tsv_dir/ --groundtruth_dir ~/work/sensor_calibration_benchmark/test/gt_tsv_dir/ --target_dir ~/work/sensor_calibration_benchmark/test/target_tsv_dir/ --key SENSOR_CALIB_EXTRINSIC_PARAM_IMU_OFF --report_type sensor_calib_checker --output_dir ~/work/sensor_calibration_benchmark/test/output_2
+```
 
 
 

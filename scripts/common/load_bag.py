@@ -6,7 +6,6 @@ def buffered_message_generator(bags, topics, tolerance):
     topic_queues = {}
     topic_skips = {}
     topic_counts = {}
-    oldest_timestamp = 1e11
     for topic in topics:
         topic_queues[topic] = []
         topic_skips[topic] = 0
@@ -43,8 +42,8 @@ def buffered_message_generator(bags, topics, tolerance):
                 frame[topic] = topic_queues[topic].pop(0)[1]
             yield frame
 
-    print "skips", topic_skips
-    print "counts", topic_counts
+    print("skips" + topic_skips)
+    print("counts" + topic_counts)
 
 
 def load_rosbags_from_files(bag_files):
@@ -57,9 +56,5 @@ def check_topic_exist_in_bag(ros_bag, topic):
     if topic in topics:
         return True
     else:
-        print 'Cannot find topic: %s in bag, maybe use: %s' % (topic, difflib.get_close_matches(topic, topics, n=1)[0])
+        print('Cannot find topic: %s in bag, maybe use: %s' % (topic, difflib.get_close_matches(topic, topics, n=1)[0]))
         return False
-
-
-if __name__ == '__main__':
-    main()

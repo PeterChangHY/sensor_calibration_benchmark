@@ -5,8 +5,6 @@ import cv2
 import calib
 import numpy as np
 import euler
-import sys
-import project_points
 
 
 def project_to_image(imu_to_image, x, y, z):
@@ -29,9 +27,8 @@ def draw_golden_lane(img, start, length, lane_width, curvature, imu_height, imu_
     curve_left_2 = []
     curve_right_1 = []
     curve_right_2 = []
-    for x in np.arange(start, start+length, step):
-        y = curvature * x**2
-        project_point = None
+    for x in np.arange(start, start + length, step):
+        y = curvature * x ** 2
         ret_left_1, project_point_left_1 = project_to_image(
             imu_to_image, x, y - lane_width / 2 - marking_width, -imu_height)
         ret_left_2, project_point_left_2 = project_to_image(
@@ -97,7 +94,6 @@ if __name__ == '__main__':
             line = line.rstrip()
             image_files.append(line)
     else:
-        print image_files
         image_files = args.input
 
     n_col = 5
@@ -110,19 +106,19 @@ if __name__ == '__main__':
     finish = False
     output_img = np.array([])
     img = cv2.imread(image_files[0])
-    patch_image_size = (int(img.shape[1]*scale), int(img.shape[0]*scale))
-    output_img = np.zeros((patch_image_size[1]*n_row, patch_image_size[0]*n_col, 3), np.uint8)
+    patch_image_size = (int(img.shape[1] * scale), int(img.shape[0] * scale))
+    output_img = np.zeros((patch_image_size[1] * n_row, patch_image_size[0] * n_col, 3), np.uint8)
     r, p, y, x, y, z = 0, 0, 0, 0, 0, 0
     while not finish:
-        print 'add offset [roll, pitch yaw, x, y, z] [{}, {}, {}, {}, {}, {}]'.format(r, p, y, x, y, z)
+        print('add offset [roll, pitch yaw, x, y, z] [{}, {}, {}, {}, {}, {}]'.format(r, p, y, x, y, z))
         tr_offset = euler.tr_matrix([r, p, y, x, y, z])
         new_tr_cam_to_imu = tr_offset.dot(tr_cam_to_imu)
         new_tr_cam_to_imu[0, 3] = x + tr_cam_to_imu[0, 3]
         new_tr_cam_to_imu[1, 3] = y + tr_cam_to_imu[1, 3]
         new_tr_cam_to_imu[2, 3] = z + tr_cam_to_imu[2, 3]
         t = new_tr_cam_to_imu.ravel().tolist()
-        print 'new tr_cam_to_imu'
-        print'[{0}, {1}, {2}, {3},\n {4}, {5}, {6}, {7},\n {8}, {9}, {10}, {11},\n {12}, {13}, {14},    {15}]'.format(*t)
+        print('new tr_cam_to_imu')
+        print('[{0}, {1}, {2}, {3},\n {4}, {5}, {6}, {7},\n {8}, {9}, {10}, {11},\n {12}, {13}, {14},    {15}]'.format(*t))
         imu_to_image = p_matrix.dot(np.linalg.inv(new_tr_cam_to_imu))
         for i, image_file in enumerate(image_files):
             img = cv2.imread(image_file)
@@ -132,7 +128,7 @@ if __name__ == '__main__':
                                        interpolation=cv2.INTER_AREA)
             row = int(i / n_col)
             col = int(i % n_col)
-            roi = output_img[row*patch_image_size[1]                             :(row+1)*patch_image_size[1], col*patch_image_size[0]: (col+1) * patch_image_size[0]]
+            roi = output_img[row * patch_image_size[1]:(row + 1) * patch_image_size[1], col * patch_image_size[0]: (col + 1) * patch_image_size[0]]
             cv2.addWeighted(roi, 0., img_with_lane, 1.0, 0, roi)
         cv2.imshow('golden_lane', output_img)
         key = cv2.waitKey(0)

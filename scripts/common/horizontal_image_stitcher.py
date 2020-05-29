@@ -2,8 +2,6 @@
 
 import cv2
 import numpy as np
-import calib
-import math
 
 # return the horizontal stacked combined image = [img0 img1 img2 ...] and reshape the whole image to self.dst_shape
 
@@ -19,7 +17,7 @@ class HorizontalImageStitcher(object):
             h, w = img.shape[:2]
             aspect_ratio = float(w) / h
             if h != self.height:
-                new_img = cv2.resize(new_img, (int(height*aspect_ratio), self.height),
+                new_img = cv2.resize(new_img, (int(h * aspect_ratio), self.height),
                                      interpolation=cv2.INTER_AREA)
 
             if display_img.size == 0:

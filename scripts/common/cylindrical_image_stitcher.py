@@ -2,7 +2,6 @@
 
 import cv2
 import numpy as np
-import calib
 import math
 
 
@@ -26,23 +25,23 @@ class CylindricalImageStitcher(object):
         # pixel coordinates
         y_i, x_i = np.indices((h_, w_))
 
-        X = np.stack([x_i, y_i, np.ones_like(x_i)], axis=-1).reshape(h_*w_, 3)  # to homog
+        X = np.stack([x_i, y_i, np.ones_like(x_i)], axis=-1).reshape(h_ * w_, 3)  # to homog
         Pinv = np.linalg.inv(projection_matrix[:3, :3])
 
         homo_X = Pinv.dot(X.T).T  # normalized coords
-        img_rays = np.concatenate([homo_X, np.zeros_like(x_i).reshape(h_*w_, 1)], axis=1)
+        img_rays = np.concatenate([homo_X, np.zeros_like(x_i).reshape(h_ * w_, 1)], axis=1)
 
         imu_rays = img_rays.dot(np.transpose(tr_cam_to_imu))
         # calculate cylindrical coords
         # note: in imu's coordinate: +x is forward, +y is left, +z is up
-        cylindrical_coords = np.zeros((h_*w_, 2), dtype=np.float32)
+        cylindrical_coords = np.zeros((h_ * w_, 2), dtype=np.float32)
         cylindrical_coords[:, 0] = (math.pi - np.arctan2(imu_rays[:, 1],
-                                                         imu_rays[:, 0])) * (dst_shape[1] / (2*math.pi))
+                                                         imu_rays[:, 0])) * (dst_shape[1] / (2 * math.pi))
         xylength = np.linalg.norm(imu_rays[:, 0:2], axis=1)
         cylindrical_coords[:, 1] = -1.0 * (np.arctan2(imu_rays[:, 2], xylength)) * (
-            dst_shape[0] / (vertical_view_of_view_deg * math.pi / 180.0)) + dst_shape[0]/2
+            dst_shape[0] / (vertical_view_of_view_deg * math.pi / 180.0)) + dst_shape[0] / 2
 
-        for index in range(h_*w_):
+        for index in range(h_ * w_):
             if cylindrical_coords[index, 0] >= 0 and cylindrical_coords[index, 0] < dst_shape[1] and cylindrical_coords[index, 1] >= 0 and cylindrical_coords[index, 1] < dst_shape[0]:
                 map_x[int(cylindrical_coords[index, 1]), int(
                     cylindrical_coords[index, 0])] = X[index, 0]

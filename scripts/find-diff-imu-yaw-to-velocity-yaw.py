@@ -1,16 +1,12 @@
 #!/usr/bin/python
-"""
-Tool to find imu-to-vehicle-yaw-offset
-"""
+""" Tool to find imu-to-vehicle-yaw-offset """
 import os
-import sys
 import math
 import tf
 import numpy as np
 import argparse
 
 import rosbag
-from nav_msgs.msg import Odometry
 
 csv_pattern = '%.4f,%s,%.1f\n'
 
@@ -41,7 +37,9 @@ class DataCollector(object):
 
     def callback_odom(self, data):
         ox, oy, oz, ow = [
-            data.pose.pose.orientation.x, data.pose.pose.orientation.y, data.pose.pose.orientation.z,
+            data.pose.pose.orientation.x,
+            data.pose.pose.orientation.y,
+            data.pose.pose.orientation.z,
             data.pose.pose.orientation.w
         ]
 
@@ -77,7 +75,7 @@ class DataCollector(object):
                 print(
                     "The diff of imu_yaw_to_velocity_yaw(radian): cur %f, avg %f, std %f"
                     % (yaw_offset_rad, np.mean(
-                        self.yaw_diffs_deg)*math.pi/180, np.std(self.yaw_diffs_deg)*math.pi/180))
+                        self.yaw_diffs_deg) * math.pi / 180, np.std(self.yaw_diffs_deg) * math.pi / 180))
                 self.x_last = self.x
                 self.y_last = self.y
                 self.last_time = data.header.stamp.to_sec()
@@ -86,13 +84,13 @@ class DataCollector(object):
                     if abs(yaw_offset_rad) > self.yaw_th_in_rad:
                         result = csv_pattern % (data.header.stamp.to_sec(),
                                                 'SENSOR_CALIB_EXTRINSIC_PARAM_IMU_OFF', 1.0)
-                        print "Write result: " + result
+                        print("Write result: " + result)
                         self.write_file.write(result)
 
                     else:
                         result = csv_pattern % (data.header.stamp.to_sec(),
                                                 'SENSOR_CALIB_EXTRINSIC_PARAM_IMU_OFF', 0.0)
-                        print "Write result: " + result
+                        print("Write result: " + result)
                         self.write_file.write(result)
 
         else:
@@ -108,7 +106,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bag", required=True, type=str, help="path to bag")
     parser.add_argument("--sample_rate", default=0.1, type=float, help="bag sample rate in second")
-    parser.add_argument("--odom_topic", default='/navsat/odom',  type=str, help="topic of odometry")
+    parser.add_argument("--odom_topic", default='/navsat/odom', type=str, help="topic of odometry")
     parser.add_argument("--yaw_th_in_rad", default=None, metavar='THRESHOLD', type=float,
                         help="yaw offset threshold in radian")
     parser.add_argument("--output_dir", default=None, metavar='PATH',
@@ -119,13 +117,12 @@ def main():
     dc = DataCollector(args.sample_rate, args.yaw_th_in_rad, args.output_dir)
     ros_bag = rosbag.Bag(args.bag)
     topics = [args.odom_topic]
-    tolerance = 0.05
 
     for msg in ros_bag.read_messages(topics=topics):
         if msg.topic == args.odom_topic:
             dc.callback_odom(msg.message)
 
-    print "Write results at: " + dc.write_file.name if dc.write_file else 'None'
+    print("Write results at: " + dc.write_file.name if dc.write_file else 'None')
 
 
 if __name__ == '__main__':
