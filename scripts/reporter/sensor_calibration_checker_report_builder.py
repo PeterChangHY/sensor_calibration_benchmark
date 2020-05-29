@@ -9,10 +9,10 @@ class SensorCalibrationCheckerReportBuilder(BinaryClassificationReportBuilder):
        2. negative_predictive_value: TN / (TN + FN)
        The reasons why we choose these two are the following.
        1. We favor a high precision system
-       2. Using negative_predictive_value instead of recall is
-          because in the general data, the number of the positive case usally is very rare.
-          Therefore, when calculating the recall(TP/(TP+FN)), we will meet the case that divied by 0 very often.
-          That's why we don't use recall.
+       2. Using negative_predictive_value instead of recall is because in the general data, 
+       the number of the positive case usually is very rare.
+       Therefore, when calculating the recall(TP/(TP+FN)), we will meet the case that divided by 0 very often. 
+       That's why we don't use recall
     """
 
     def __init__(self, settings):
