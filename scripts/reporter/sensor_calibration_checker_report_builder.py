@@ -23,7 +23,7 @@ class SensorCalibrationCheckerReportBuilder(BinaryClassificationReportBuilder):
         baseline_str_ppv, target_str_ppv = self._hightlight_lower_float(baseline_eval.positive_predictive_value, target_eval.positive_predictive_value)
         stats.append(['positive_predictive_value', baseline_str_ppv, target_str_ppv])
 
-        baseline_str_npv, target_str_npv = self._hightlight_higher_float(baseline_eval.negative_predictive_value, target_eval.negative_predictive_value)
+        baseline_str_npv, target_str_npv = self._hightlight_lower_float(baseline_eval.negative_predictive_value, target_eval.negative_predictive_value)
         stats.append(['negative_predictive_value', baseline_str_npv, target_str_npv])
         return stats
 
