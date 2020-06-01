@@ -110,7 +110,7 @@ source .venv/bin/activate
 python reporter/reporter.py --baseline_dir ~/work/sensor_calibration_benchmark/test/baseline_tsv_dir/ --groundtruth_dir ~/work/sensor_calibration_benchmark/test/gt_tsv_dir/ --target_dir ~/work/sensor_calibration_benchmark/test/target_tsv_dir/ --key SENSOR_CALIB_EXTRINSIC_PARAM_IMU_OFF --report_type sensor_calib_checker --output_dir ~/work/sensor_calibration_benchmark/test/output_2
 ```
 
-### [Sensor calibration Checker report wiki](Sensor calibration Checker report)
+### [Sensor calibration Checker report wiki](https://github.com/PeterChangHY/sensor_calibration_benchmark/wiki/Sensor-calibration-Checker-report)
 
 
  
