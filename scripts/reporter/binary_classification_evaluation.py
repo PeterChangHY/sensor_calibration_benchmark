@@ -8,7 +8,13 @@ class BinaryClassificationEvaluationResult(object):
     """
         Data class contains:
 
-        binary-classification related metrics:
+        basic classcifications:
+        1. true positive
+        2. true negative
+        3. false positive
+        4. false negative
+
+        ratios:
         1. true positive rate (TPR), aka sensitivity or recall
         2. true negative rate (TNR), aka specificity
         3. positive predictive value (PPV), aka precision
@@ -17,17 +23,22 @@ class BinaryClassificationEvaluationResult(object):
         6. false positive rate (FPR), aka fall-out
         7. false discovery rate (FDR)
         8. false omission rate (FOR)
+
+        others:
+        1. total_number: total number of classcifications
+
     """
 
     def __init__(self, true_positive=0, true_negative=0, false_positive=0, false_negative=0):
-        self.true_positive_rate = float("NAN")
-        self.true_negative_rate = float("NAN")
-        self.positive_predictive_value = float("NAN")
-        self.negative_predictive_value = float("NAN")
-        self.false_positive_rate = float("NAN")
-        self.false_negative_rate = float("NAN")
-        self.false_discovery_rate = float("NAN")
-        self.false_omission_rate = float("NAN")
+        self.true_positive_rate = 0
+        self.true_negative_rate = 0
+        self.positive_predictive_value = 0
+        self.negative_predictive_value = 0
+        self.false_positive_rate = 0
+        self.false_negative_rate = 0
+        self.false_discovery_rate = 0
+        self.false_omission_rate = 0
+        self.total_number = 0
 
         self.true_positive = true_positive
         self.true_negative = true_negative
@@ -37,7 +48,7 @@ class BinaryClassificationEvaluationResult(object):
         self._evaluate_binary_classification()
 
     def add(self, other):
-        """ add other result"""
+        """ combine other result"""
         self.true_positive = self.true_positive + other.true_positive
         self.true_negative = self.true_negative + other.true_negative
         self.false_positive = self.false_positive + other.false_positive
@@ -53,6 +64,7 @@ class BinaryClassificationEvaluationResult(object):
         self._get_false_negative_rate()
         self._get_false_discovery_rate()
         self._get_false_omission_rate()
+        self.total_number = self.true_positive + self.true_negative + self.false_positive + self.false_negative
 
     def _gen_true_positive_rate(self):
         if (self.true_positive + self.false_negative) != 0:

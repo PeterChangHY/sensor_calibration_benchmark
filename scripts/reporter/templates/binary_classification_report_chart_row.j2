@@ -1,4 +1,3 @@
-
 <tr id="bag">
 <td>
 {{bag}}
@@ -8,11 +7,49 @@
         <tr>
         <th>Metric</th> <th>Baseline</h2></th> <th>Target</th>
         </tr>
-        {% for row in stats %}
+        <td>
+            Confusion Matrix
+        </td>
+        <td>
+            <table id='confusion_matrix'>
+                <tr>
+                    <td> total#: {{ confusion_matrix['total_number']['baseline'] }}</td> <td>Condition positive</td> <td>Condition negative</td>
+                </tr>
+                <tr>
+                     <td style="border: 1px solid black">Test positive</td>
+                     <td style="border: 1px solid black">{{ confusion_matrix['True Positive']['baseline'] }}</td>
+                     <td style="border: 1px solid black">{{ confusion_matrix['False Positive']['baseline'] }}</td>
+                </tr>
+                <tr>
+                     <td style="border: 1px solid black">Test negative</td>
+                     <td style="border: 1px solid black">{{ confusion_matrix['False Negative']['baseline'] }}</td>
+                     <td style="border: 1px solid black">{{ confusion_matrix['True Negative']['baseline'] }}</td>
+                </tr>
+                </table>
+        </td>
+        <td>
+            <table id='confusion_matrix'>
+                <tr>
+                    <td>total#: {{ confusion_matrix['total_number']['target'] }}</td> <td>Condition positive</td> <td>Condition negative</td>
+                </tr>
+                <tr>
+                     <td style="border: 1px solid black">Test positive</td> 
+                     <td style="border: 1px solid black">{{ confusion_matrix['True Positive']['target'] }}</td> 
+                     <td style="border: 1px solid black">{{ confusion_matrix['False Positive']['target'] }}</td>
+                </tr>
+                <tr>
+                     <td style="border: 1px solid black">Test negative</td> 
+                     <td style="border: 1px solid black">{{ confusion_matrix['False Negative']['target'] }}</td>
+                     <td style="border: 1px solid black">{{ confusion_matrix['True Negative']['target'] }}</td>
+                </tr>
+                </table>
+        </td>
+
+        {% for row in ratios %}
         <tr>
-            <td class=black> {{ row[0] }} </td>
-            <td> {{ row[1] }} </td>
-            <td> {{ row[2] }} </td>
+            <td class=black> {{ row['name'] }} </td>
+            <td> {{ row['baseline'] }} </td>
+            <td> {{ row['target'] }} </td>
         </tr>
         {% endfor %}
     </table>

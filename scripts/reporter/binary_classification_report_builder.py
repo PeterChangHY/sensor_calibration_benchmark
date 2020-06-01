@@ -16,7 +16,7 @@ class BinaryClassificationReportBuilder(ReportBuilder):
 
     def __init__(self, settings):
         ReportBuilder.__init__(self, settings)
-        self.evaluation_list = None
+        self.render_data_list = None
 
     def build(self):
         """
@@ -44,15 +44,15 @@ class BinaryClassificationReportBuilder(ReportBuilder):
             if matched_fileset:
                 matched_fileset_list.append(matched_fileset)
 
-        self.evaluation_list = self._process(matched_fileset_list)
+        self.render_data_list = self._process(matched_fileset_list)
         self._render()
 
     def _process(self, matched_fileset_list):
-        evaluation_list = []
+        render_data_list = []
         all_baseline_evaluation = BinaryClassificationEvaluationResult()
         all_target_evaluation = BinaryClassificationEvaluationResult()
         for matched_fileset in matched_fileset_list:
-            evaluation = {}
+            render_data = {}
             ground_truth_data = generate_boolean_data(self.settings.key, matched_fileset['groud_truth_file'])
             baseline_data = generate_boolean_data(self.settings.key, matched_fileset['basline_file'])
             baseline_evaluator = BinaryClassificationEvaluator(baseline_data, ground_truth_data, match_time_tolerance_in_second=0.05, default_value=False)
@@ -66,73 +66,101 @@ class BinaryClassificationReportBuilder(ReportBuilder):
                 target_evaluation = target_evaluator.result
                 all_target_evaluation.add(target_evaluation)
 
-            evaluation['bag'] = ground_truth_data.bag
-            evaluation['stats'] = self._gen_stats(baseline_evaluation, target_evaluation)
+            render_data['bag'] = ground_truth_data.bag
+            render_data['confusion_matrix'] = self._gen_confusion_matrix(baseline_evaluation, target_evaluation)
+            render_data['ratios'] = self._gen_ratios(baseline_evaluation, target_evaluation)
 
             outfile = os.path.join(self.settings.output_dir, self.settings.key + "_" + ground_truth_data.bag + '_binary_classification.png')
             data_plotter.generate_binary_plot(baseline_data, ground_truth_data, self.settings.key, outfile, target_data)
-            evaluation['plot_path'] = os.path.relpath(outfile, self.settings.output_dir)
+            render_data['plot_path'] = os.path.relpath(outfile, self.settings.output_dir)
 
-            evaluation_list.append(evaluation)
+            render_data_list.append(render_data)
 
-        overall_evaluation = {'bag': 'overall', 'stats': self._gen_stats(all_baseline_evaluation, all_target_evaluation), 'plot_path': None}
-        evaluation_list.insert(0, overall_evaluation)
+        overall_render_data = {'bag': 'overall',
+                              'ratios': self._gen_ratios(all_baseline_evaluation, all_target_evaluation),
+                              'confusion_matrix': self._gen_confusion_matrix(all_baseline_evaluation, all_target_evaluation),
+                              'plot_path': None}
+        render_data_list.insert(0, overall_render_data)
 
-        return evaluation_list
+        return render_data_list
 
-    def _hightlight_lower_float(self, float_1, float_2):
-        float_format = '{:.5f}'
-        if abs(float_1 - float_2) > 1e-5:
-            if float_1 > float_2:
-                return float_format.format(float_1), self._highlight_value(float_format.format(float_2), 1, color='red')
-            else:
-                return self._highlight_value(float_format.format(float_1), 1, color='red'), float_format.format(float_2)
-        return float_format.format(float_1), float_format.format(float_2)
+    def _gen_confusion_matrix(self, baseline_eval, target_eval):
+        baseline_tp_str, target_tp_str = self._hightlight_lower_int(baseline_eval.true_positive, target_eval.true_positive)
+        baseline_tn_str, target_tn_str = self._hightlight_lower_int(baseline_eval.true_negative, target_eval.true_negative)
+        baseline_fp_str, target_fp_str = self._hightlight_higher_int(baseline_eval.false_positive, target_eval.false_positive)
+        baseline_fn_str, target_fn_str = self._hightlight_higher_int(baseline_eval.false_negative, target_eval.false_negative)
 
-    def _hightlight_higher_float(self, float_1, float_2):
-        float_format = '{:.5f}'
-        if abs(float_1 - float_2) > 1e-5:
-            if float_1 > float_2:
-                return self._highlight_value(float_format.format(float_1), 1, color='red'), float_format.format(float_2)
-            else:
-                return float_format.format(float_1), self._highlight_value(float_format.format(float_2), 1, color='red')
-        return float_format.format(float_1), float_format.format(float_2)
+        return {'True Positive': {'baseline': baseline_tp_str, 'target': target_tp_str},
+                'True Negative': {'baseline': baseline_tn_str, 'target': target_tn_str},
+                'False Positive': {'baseline': baseline_fp_str, 'target': target_fp_str},
+                'False Negative': {'baseline': baseline_fn_str, 'target': target_fn_str},
+                'total_number': {'baseline': baseline_eval.total_number, 'target': target_eval.total_number}}
 
-    def _gen_stats(self, baseline_eval, target_eval):
-        stats = []
-        stats.append(['true_positive_rate',
-                      baseline_eval.true_positive_rate,
-                      target_eval.true_positive_rate])
-        stats.append(['true_negative_rate',
-                      baseline_eval.true_negative_rate,
-                      target_eval.true_negative_rate])
-        stats.append(['positive_predictive_value',
-                      baseline_eval.positive_predictive_value,
-                      target_eval.positive_predictive_value])
-        stats.append(['negative_predictive_value',
-                      baseline_eval.negative_predictive_value,
-                      target_eval.negative_predictive_value])
-        stats.append(['false_positive_rate',
-                      baseline_eval.false_positive_rate,
-                      target_eval.false_positive_rate])
-        stats.append(['false_negative_rate',
-                      baseline_eval.false_negative_rate,
-                      target_eval.false_negative_rate])
-        stats.append(['false_discovery_rate',
-                      baseline_eval.false_discovery_rate,
-                      target_eval.false_discovery_rate])
-        stats.append(['false_omission_rate',
-                      baseline_eval.false_omission_rate,
-                      target_eval.false_omission_rate])
-        return stats
+    def _gen_ratio(self, name, baseline_value, target_value):
+        return {'name': name, 'baseline': baseline_value, 'target': target_value}
+
+    def _gen_true_positive_rate(self, baseline_eval, target_eval):
+        return self._gen_ratio('true_positive_rate<br>TP / (TP + FN)',
+                                baseline_eval.true_positive_rate,
+                                target_eval.true_positive_rate)
+
+    def _gen_true_negative_rate(self, baseline_eval, target_eval):
+        return self._gen_ratio('true_negative_rate<br>TN / (TN + FP)',
+                                baseline_eval.true_negative_rate,
+                                target_eval.true_negative_rate)
+
+    def _gen_positive_predictive_value(self, baseline_eval, target_eval):
+        return self._gen_ratio('positive_predictive_value<br>TP / (TP + FP)',
+                                baseline_eval.positive_predictive_value,
+                                target_eval.positive_predictive_value)
+
+    def _gen_negative_predictive_value(self, baseline_eval, target_eval):
+        return self._gen_ratio('negative_predictive_value<br>TN / (TN + FN)',
+                                baseline_eval.negative_predictive_value,
+                                target_eval.negative_predictive_value)
+
+    def _gen_false_positive_rate(self, baseline_eval, target_eval):
+        return self._gen_ratio('false_positive_rate<br>FP / (TN + FP)',
+                                baseline_eval.false_positive_rate,
+                                target_eval.false_positive_rate)
+
+    def _gen_false_negative_rate(self, baseline_eval, target_eval):
+        return self._gen_ratio('false_negative_rate<br>FN / (TP + FN)',
+                                baseline_eval.false_negative_rate,
+                                target_eval.false_negative_rate)
+
+    def _gen_false_discovery_rate(self, baseline_eval, target_eval):
+        return self._gen_ratio('false_discovery_rate<br>FP / (TP + FP)',
+                                baseline_eval.false_discovery_rate,
+                                target_eval.false_discovery_rate)
+
+    def _gen_false_omission_rate(self, baseline_eval, target_eval):
+        return self._gen_ratio('false_omission_rate<br>FN / (TN + FN)',
+                                baseline_eval.false_omission_rate,
+                                target_eval.false_omission_rate)
+
+    def _gen_ratios(self, baseline_eval, target_eval):
+        ratios = []
+
+        ratios.append(self._gen_true_positive_rate(baseline_eval, target_eval))
+        ratios.append(self._gen_true_negative_rate(baseline_eval, target_eval))
+        ratios.append(self._gen_positive_predictive_value(baseline_eval, target_eval))
+        ratios.append(self._gen_negative_predictive_value(baseline_eval, target_eval))
+        ratios.append(self._gen_false_positive_rate(baseline_eval, target_eval))
+        ratios.append(self._gen_false_negative_rate(baseline_eval, target_eval))
+        ratios.append(self._gen_false_discovery_rate(baseline_eval, target_eval))
+        ratios.append(self._gen_false_omission_rate(baseline_eval, target_eval))
+
+        return ratios
 
     def _render(self):
         rows = []
-        for evaluation in self.evaluation_list:
+        for render_data in self.render_data_list:
             row = self._render_template('binary_classification_report_chart_row', {
-                'bag': evaluation['bag'],
-                'stats': evaluation['stats'],
-                'chart_path': evaluation['plot_path']})
+                'bag': render_data['bag'],
+                'confusion_matrix': render_data['confusion_matrix'],
+                'ratios': render_data['ratios'],
+                'chart_path': render_data['plot_path']})
             rows.append(row)
         target_name = 'N/A'
         if self.settings.target_dir is not None:

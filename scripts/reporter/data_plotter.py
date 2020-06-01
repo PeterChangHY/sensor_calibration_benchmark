@@ -31,7 +31,7 @@ def generate_binary_plot(baseline_data, ground_truth_data, plot_name, outfile, t
             x_data = []
             y_data = []
 
-        plot_obj.plot(x_data, y_data, color=color, label=label, alpha=alpha, marker=marker, linestyle=linesytle, linewidth=1, markersize=markersize)
+        plot_obj.plot(x_data, y_data, drawstyle='steps-post', color=color, label=label, alpha=alpha, marker=marker, linestyle=linesytle, linewidth=1, markersize=markersize)
 
     # shift time
     if len(ground_truth_data.data_frame['Unix_Time'].tolist()) > 0:
@@ -56,10 +56,10 @@ def generate_binary_plot(baseline_data, ground_truth_data, plot_name, outfile, t
     ax.set_ylim(-0.1, 1.1)
     ax.set_yticks([0, 1])
 
-    plot(plt, ground_truth_data.data_frame, color=(0.9, 0.0, 0.0), label='ground_truth', alpha=1.0, marker='x', markersize=4, linesytle='solid')
-    plot(plt, baseline_data.data_frame, color=(0.2, 0.2, 0.9), label='baseline', alpha=0.8, marker='s', markersize=2, linesytle='dotted')
+    plot(plt, ground_truth_data.data_frame, color=(0.9, 0.4, 0.4), label='ground_truth', alpha=1.0, marker='x', markersize=4, linesytle='solid')
+    plot(plt, baseline_data.data_frame, color=(0.2, 0.2, 0.9), label='baseline', alpha=0.8, marker='d', markersize=3, linesytle='dotted')
     if target_data is not None:
-        plot(plt, target_data.data_frame, color=(0.1, 0.9, 0.1), label='target', alpha=0.8, marker='s', markersize=2, linesytle=(0, (5, 10)))
+        plot(plt, target_data.data_frame, color=(0.1, 0.9, 0.1), label='target', alpha=0.8, marker='s', markersize=1, linesytle=(0, (5, 10)))
 
     plt.legend()
     plt.savefig(outfile, dpi=400)

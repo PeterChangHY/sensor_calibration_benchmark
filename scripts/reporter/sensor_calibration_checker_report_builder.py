@@ -9,31 +9,35 @@ class SensorCalibrationCheckerReportBuilder(BinaryClassificationReportBuilder):
        2. negative_predictive_value: TN / (TN + FN)
        The reasons why we choose these two are the following.
        1. We favor a high precision system
-       2. Using negative_predictive_value instead of recall is because in the general data, 
+       2. Using negative_predictive_value instead of recall is because in the general data,
        the number of the positive case usually is very rare.
-       Therefore, when calculating the recall(TP/(TP+FN)), we will meet the case that divided by 0 very often. 
+       Therefore, when calculating the recall(TP/(TP+FN)), we will meet the case that divided by 0 very often.
        That's why we don't use recall
     """
 
     def __init__(self, settings):
         BinaryClassificationReportBuilder.__init__(self, settings)
 
-    def _gen_stats(self, baseline_eval, target_eval):
-        stats = []
-        baseline_str_ppv, target_str_ppv = self._hightlight_lower_float(baseline_eval.positive_predictive_value, target_eval.positive_predictive_value)
-        stats.append(['positive_predictive_value', baseline_str_ppv, target_str_ppv])
+    def _gen_ratios(self, baseline_eval, target_eval):
+        ratios = []
+        ppv_res = self._gen_positive_predictive_value(baseline_eval, target_eval)
+        ppv_res['baseline'], ppv_res['target'] = self._hightlight_lower_float(ppv_res['baseline'], ppv_res['target'])
+        ratios.append(ppv_res)
 
-        baseline_str_npv, target_str_npv = self._hightlight_lower_float(baseline_eval.negative_predictive_value, target_eval.negative_predictive_value)
-        stats.append(['negative_predictive_value', baseline_str_npv, target_str_npv])
-        return stats
+        npv_res = self._gen_negative_predictive_value(baseline_eval, target_eval)
+        npv_res['baseline'], npv_res['target'] = self._hightlight_lower_float(npv_res['baseline'], npv_res['target'])
+        ratios.append(npv_res)
+
+        return ratios
 
     def _render(self):
         rows = []
-        for evaluation in self.evaluation_list:
+        for render_data in self.render_data_list:
             row = self._render_template('binary_classification_report_chart_row', {
-                'bag': evaluation['bag'],
-                'stats': evaluation['stats'],
-                'chart_path': evaluation['plot_path']})
+                'bag': render_data['bag'],
+                'confusion_matrix': render_data['confusion_matrix'],
+                'ratios': render_data['ratios'],
+                'chart_path': render_data['plot_path']})
             rows.append(row)
         target_name = 'N/A'
         if self.settings.target_dir is not None:
