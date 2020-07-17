@@ -59,10 +59,10 @@ class DataCreatorBase(DataCreatorInterface):
         self._bag = os.path.splitext(os.path.basename(filename))[0]
         self._key = key
         self._set_value_type()
-        self._read_tsv_to_panda_to_pandas(filename)
+        valid = self._read_tsv_to_panda(filename)
         if adding_datetime:
             self._add_datetime()
-        return Data(self._bag, self._key, self._data_frame, value_type=self._value_type)
+        return Data(self._bag, self._key, self._data_frame, value_type=self._value_type), valid
 
     def _check_file(self, filename):
         if os.path.isfile(filename):
@@ -70,16 +70,17 @@ class DataCreatorBase(DataCreatorInterface):
         else:
             raise ValueError('file: {} is not a file'.format(filename))
 
-    def _read_tsv_to_panda_to_pandas(self, filename):
+    def _read_tsv_to_panda(self, filename):
         column_names = ['Unix_Time', 'Key', 'Raw_value']
-        self._data_frame = pd.read_csv(filename, header=None, names=column_names, sep='\t',
+        self._data_frame = pd.read_csv(filename, header=0, names=column_names, sep='\t',
                                        dtype={'Unix_Time': np.float64,
                                               'Key': str,
                                               'Raw_value': str})
         self._get_key_slice()
-        self._parse_values()
+        valid = self._parse_values()
         # sort by timestamps
         self._data_frame.sort_values('Unix_Time', inplace=True)
+        return valid
 
     def _get_key_slice(self):
         # For meaningful (and simpler) comparison, it's easier to chop the df by the key
@@ -107,8 +108,12 @@ class BooleanDataCreator(DataCreatorBase):
         parsed_values = []
         for _, row in self._data_frame.iterrows():
             value_in_string = str(row['Raw_value'])
-            parsed_values.append(self._parse_string_to_boolean(value_in_string))
+            try:
+                parsed_values.append(self._parse_string_to_boolean(value_in_string))
+            except ValueError:
+                return False
         self._data_frame['Parsed_value'] = parsed_values
+        return True
 
     @ staticmethod
     def _parse_string_to_boolean(value_in_string):
@@ -182,6 +187,7 @@ class MatrixDataCreator(DataCreatorBase):
 def generate_boolean_data(key, tsv_file):
     """generate boolean data"""
     boolean_creator = BooleanDataCreator()
+    print(tsv_file)
     return boolean_creator.create(key, tsv_file)
 
 

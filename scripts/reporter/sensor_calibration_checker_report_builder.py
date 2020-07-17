@@ -28,6 +28,10 @@ class SensorCalibrationCheckerReportBuilder(BinaryClassificationReportBuilder):
         npv_res['baseline'], npv_res['target'] = self._hightlight_lower_float(npv_res['baseline'], npv_res['target'])
         ratios.append(npv_res)
 
+        tnr_res = self._gen_true_negative_rate(baseline_eval, target_eval)
+        tnr_res['baseline'], npv_res['target'] = self._hightlight_lower_float(tnr_res['baseline'], tnr_res['target'])
+        ratios.append(tnr_res)
+
         return ratios
 
     def _render(self):

@@ -3,7 +3,7 @@ Calibration_viewer
 
 ```bash
 $ cd scripts
-$ python -m calibration_viewer.calibration_viewer --bag your.bag --cam_topic left_camera right_camera --cam_calibs front_left_camera.yml front_right_camera.yaml --output_dir ~/Work/test/calibration_viewer/ --show_golden_lane
+$ python -m calibration_viewer/calibration_viewer --bag your.bag --cam_topic left_camera right_camera --cam_calibs front_left_camera.yml front_right_camera.yaml --output_dir ~/Work/test/calibration_viewer/ --show_golden_lane
 ```
 
 top down view

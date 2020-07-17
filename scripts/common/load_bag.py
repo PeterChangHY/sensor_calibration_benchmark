@@ -29,6 +29,7 @@ def buffered_message_generator(bags, topics, tolerance):
                     newest_tip = topic_queues[topic][0][0]
             for topic in topics:
                 while topic_queues[topic] and newest_tip - topic_queues[topic][0][0] > tolerance:
+                    print(newest_tip - topic_queues[topic][0][0])
                     topic_skips[topic] += 1
                     topic_queues[topic].pop(0)
 
@@ -42,8 +43,8 @@ def buffered_message_generator(bags, topics, tolerance):
                 frame[topic] = topic_queues[topic].pop(0)[1]
             yield frame
 
-    print("skips" + topic_skips)
-    print("counts" + topic_counts)
+    print("skips", topic_skips)
+    print("counts", topic_counts)
 
 
 def load_rosbags_from_files(bag_files):

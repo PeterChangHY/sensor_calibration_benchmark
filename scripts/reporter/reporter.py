@@ -26,6 +26,7 @@ def main():
                         help="key to be analyzed")
     parser.add_argument("--mode", required=True, type=str,
                         choices=['binary_classification', 'sensor_calib_checker'], help="report mode")
+    parser.add_argument("--no_figure", action='store_true', help="Don't genererate figures")
     parser.add_argument("--output_dir", default=None, metavar='DIR', dest='output_dir',
                         type=str, help="output directory of result")
 
@@ -50,6 +51,7 @@ def main():
         'target_dir': os.path.abspath(args.target_dir) if args.target_dir is not None else None,
         'output_dir': os.path.abspath(args.output_dir),
         'key': args.key,
+        'no_figure': args.no_figure,
         'template_dir': template_dir,
     })
     print("Settings:")

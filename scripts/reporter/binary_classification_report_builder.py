@@ -2,7 +2,7 @@
 """ binary classification report buider module"""
 import os
 
-
+import time
 import utils
 
 from report_builder import ReportBuilder
@@ -43,7 +43,6 @@ class BinaryClassificationReportBuilder(ReportBuilder):
                 matched_fileset['target_file'] = target_files[basename]
             if matched_fileset:
                 matched_fileset_list.append(matched_fileset)
-
         self.render_data_list = self._process(matched_fileset_list)
         self._render()
 
@@ -52,11 +51,23 @@ class BinaryClassificationReportBuilder(ReportBuilder):
         all_baseline_evaluation = BinaryClassificationEvaluationResult()
         all_target_evaluation = BinaryClassificationEvaluationResult()
         for matched_fileset in matched_fileset_list:
+            start_at = time.time()
             render_data = {}
-            ground_truth_data = generate_boolean_data(self.settings.key, matched_fileset['groud_truth_file'])
-            baseline_data = generate_boolean_data(self.settings.key, matched_fileset['basline_file'])
+            print(matched_fileset['groud_truth_file'])
+            ground_truth_data, gt_valid = generate_boolean_data(self.settings.key, matched_fileset['groud_truth_file'])
+            
+            baseline_data, baseline_valid = generate_boolean_data(self.settings.key, matched_fileset['basline_file'])
+            if not gt_valid or not baseline_valid:
+                continue
+            print('generate_boolean_data took {} s'.format(time.time() - start_at))
             baseline_evaluator = BinaryClassificationEvaluator(baseline_data, ground_truth_data, match_time_tolerance_in_second=0.05, default_value=False)
+            print('evaluation took {} s'.format(time.time() - start_at))
             baseline_evaluation = baseline_evaluator.result
+            print("deded")
+            print(baseline_evaluation.true_positive)
+            print(baseline_evaluation.true_negative)
+            print(baseline_evaluation.false_positive)
+            print(baseline_evaluation.false_negative)
             all_baseline_evaluation.add(baseline_evaluation)
             target_data = None
             target_evaluation = BinaryClassificationEvaluationResult()
@@ -71,10 +82,14 @@ class BinaryClassificationReportBuilder(ReportBuilder):
             render_data['ratios'] = self._gen_ratios(baseline_evaluation, target_evaluation)
 
             outfile = os.path.join(self.settings.output_dir, self.settings.key + "_" + ground_truth_data.bag + '_binary_classification.png')
-            data_plotter.generate_binary_plot(baseline_data, ground_truth_data, self.settings.key, outfile, target_data)
-            render_data['plot_path'] = os.path.relpath(outfile, self.settings.output_dir)
+            if self.settings.no_figure:
+                render_data['plot_path'] = None
+            else:
+                data_plotter.generate_binary_plot(baseline_data, ground_truth_data, self.settings.key, outfile, target_data)
+                render_data['plot_path'] = os.path.relpath(outfile, self.settings.output_dir)
 
             render_data_list.append(render_data)
+            print('process a file took {} s'.format(time.time() - start_at))
 
         overall_render_data = {'bag': 'overall',
                               'ratios': self._gen_ratios(all_baseline_evaluation, all_target_evaluation),

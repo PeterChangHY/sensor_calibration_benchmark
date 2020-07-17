@@ -30,8 +30,8 @@ from common import cylindrical_image_stitcher
 bridge = CvBridge()
 logger = logging.getLogger(__name__)
 # define lidar projection color BGR
-lidar_color = [(0, 255, 0), (0, 0, 255), (255, 0, 0), (0, 255, 128), (128, 255, 0)]
-radar_color = [(255, 100, 100), (0, 100, 128), (100, 50, 180), (0, 0, 255), (0, 250, 100)]
+lidar_color = [(0, 255, 0), (128, 0, 128), (255, 0, 0), (0, 255, 128), (128, 255, 0)]
+radar_color = [(255, 100, 100), (0, 100, 128), (100, 50, 180), (0, 0, 255), (50, 50, 100)]
 
 image_name_pattern = "%04d.png"
 lidar_name_pattern = "%04d.pcd"
@@ -84,6 +84,18 @@ class CalibratonViewer(object):
                 '/')[1], (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
         # load all lidar messages
+
+        # fixed the wrong  fileds of unified points to XYZIRT
+        for lidar_msg in lidar_messages:
+            corrected_fields = lidar_msg.message.fields[:6]
+            corrected_fields[4].name = 'ring'
+            corrected_fields[4].offset = 16
+            corrected_fields[4].datatype = 4
+            corrected_fields[5].name = 'timstamp'
+            corrected_fields[5].offset = 18
+            corrected_fields[5].datatype = 8
+            lidar_msg.message.fields = corrected_fields
+
         pointclouds = {lidar_msg.topic: pypcd.PointCloud.from_msg(lidar_msg.message)
                        for lidar_msg in lidar_messages}
 
@@ -143,7 +155,7 @@ class CalibratonViewer(object):
                     Tr_lidar_to_cam, cam_calib.P, (cam_calib.width, cam_calib.height), xyz_data)
                 color_bgr = lidar_color[color_index % len(lidar_color)]
                 for pt in proj_points:
-                    draw_image = cv2.circle(draw_image, pt, 2, color_bgr, -1)
+                    draw_image = cv2.circle(draw_image, pt, 1, color_bgr, -1)
 
                 draw_image = cv2.putText(draw_image, lidar_topic.split('/')[1], (20, 50 + 30 * color_index), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                          color_bgr, 2, cv2.LINE_AA)
@@ -232,7 +244,7 @@ class CalibratonViewer(object):
         for topic in phi_dic:
             sorted_images.append(rect_images[topic])
 
-        return self.horizontal_image_stitcher.horizontal_stitch(sorted_images)
+        return self.horizontal_image_stitcher.horizontal_stitch(sorted_images, args.draw_epipolar_line)
 
     def generate_cylindrical_stitched_image(self, rect_images):
         dst_shape = self.cylindrical_image_stitchers.values()[0].dst_shape
@@ -317,23 +329,31 @@ class CalibratonViewer(object):
             lidar_index += 1
 
     def draw_radar_in_topdown_view(self, all_radar_tracks, plot_ax):
-        index = 0
+        radar_index = 0
         for topic in all_radar_tracks:
             radar_tracks = all_radar_tracks[topic]
             radar_calib = self.radar_calibs[topic]
             Tr_radar_to_imu = radar_calib.Tr_radar_to_imu
             # radar_tracks = parse_radar_message.parse_radar_track(radar_msg.message)
-            color_bgr = radar_color[index % len(radar_color)]
+            color_bgr = radar_color[radar_index % len(radar_color)]
             color_rgb = [k / 255.0 for k in reversed(color_bgr)]
             xyz_data = []
+            velocity_data = []
             for radar_track in radar_tracks:
                 radar_obstacle_contours = np.array(
                     [[p[0], p[1], p[2]] for p in radar_track['point']])
-                xyz_data.append(np.mean(radar_obstacle_contours, axis=0))
+                mean_xyz = np.mean(radar_obstacle_contours, axis=0)
+                xyz_data.append(mean_xyz)
+                velocity_data.append(np.array(radar_track['velocity']))
                 # xyz_data = np.array(xyz_data)
             xyz_data_imu = project_points.transform_point(Tr_radar_to_imu, np.array(xyz_data))
-            plot_ax.scatter(xyz_data_imu[:, 0], xyz_data_imu[:, 1], color=color_rgb,
-                            marker='+', s=20.0, alpha=1.0, label=topic)
+            velocity_data_imu = project_points.transform_vector(Tr_radar_to_imu, np.array(velocity_data))
+            if xyz_data_imu.any():
+                plot_ax.scatter(xyz_data_imu[:, 0], xyz_data_imu[:, 1], color=color_rgb,
+                                marker='+', s=20.0, alpha=1.0, label=topic)
+                plot_ax.quiver(xyz_data_imu[:, 0], xyz_data_imu[:, 1], velocity_data_imu[:, 0], velocity_data_imu[:, 1], color=color_rgb)
+
+            radar_index += 1
 
     def write_topdown_view(self, pointclouds, radar_tracks, frame_number):
         fig, bird_eye_ax = plt.subplots()
@@ -352,6 +372,7 @@ class CalibratonViewer(object):
 
         image_name = image_name_pattern % frame_number
         plt.savefig(os.path.join(self.output_dir, 'topdown', image_name), dpi=250)
+        plt.close('all')
 
     def write_frame(self, frame_number, cam_messages, lidar_messages, radar_messages):
 
@@ -439,6 +460,8 @@ if __name__ == '__main__':
                         help="display radar point on image when topic is available")
     parser.add_argument("--draw_golden_lane", action='store_true',
                         help="display golden lane in all rectified images")
+    parser.add_argument("--draw_epipolar_line", action='store_true',
+                        help="display epipolar in horizontal stitched images")
     parser.add_argument("--output_dir", type=str, default='.', help="output directory")
 
     args = parser.parse_args()

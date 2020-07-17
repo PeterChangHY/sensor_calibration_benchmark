@@ -29,6 +29,17 @@ def transform_point(tr, cloud):
     return np.array(tr_points)
 
 
+def transform_vector(tr, cloud):
+    tr_points = []
+    for row in range(cloud.shape[0]):
+        point = cloud[row]
+        point_augmented = np.array([point[0], point[1], point[2], 0])
+
+        point_cam_3d = tr.dot(point_augmented)
+        tr_points.append(point_cam_3d[:3])
+    return np.array(tr_points)
+
+
 def project_point(Tr_lidar_to_cam, p, image_size, cloud):
     proj_points = []
     for row in range(cloud.shape[0]):
